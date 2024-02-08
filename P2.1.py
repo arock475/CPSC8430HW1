@@ -7,7 +7,7 @@ import numpy as np
 
 
 LR = 0.0001
-MAX_EPOCH = 36
+MAX_EPOCH = 4
 BATCH_SIZE = 512
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -37,7 +37,6 @@ class SineApproximator(nn.Module):
 
 
 X = np.random.rand(10 ** 5) * 2 * np.pi
-print(X)
 y = simpleFunction(X)
 
 
@@ -49,63 +48,74 @@ val_dataloader = DataLoader(TensorDataset(X_val.unsqueeze(1), y_val.unsqueeze(1)
                             pin_memory=True, shuffle=True)
 
 model1 = SineApproximator().to(device)
-model2 = SineApproximator().to(device)
 optimizer1 = optim.Adam(model1.parameters(), lr=LR)
-optimizer2 = optim.Adam(model2.parameters(), lr=LR)
 criterion = nn.MSELoss(reduction="mean")
 
 # training loop for model 1
 train_loss_list = list()
 val_loss_list = list()
+vis_weights = []
+vis_loss = []
+epochs = []
+for i in range(8):
+    vis_loss_temp = []
+    vis_weight_temp = []
+    epochs_temp = []
+    for epoch in range(MAX_EPOCH):
 
-for epoch in range(MAX_EPOCH):
-
-    print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
-    model1.train()
-    # training loop
-    temp_loss_list = list()
-    for X_train, y_train in train_dataloader:
-        X_train = X_train.type(torch.float32).to(device)
-        y_train = y_train.type(torch.float32).to(device)
-        optimizer1.zero_grad()
-        score = model1(X_train)
-        loss = criterion(input=score, target=y_train)
-        loss.backward()
-        optimizer1.step()
-        temp_loss_list.append(loss.detach().cpu().numpy())
-    train_loss_list.append(np.average(temp_loss_list))
-
-    # validation
-    model1.eval()
-    temp_loss_list = list()
-    for X_val, y_val in val_dataloader:
-        X_val = X_val.type(torch.float32).to(device)
-        y_val = y_val.type(torch.float32).to(device)
-        score = model1(X_val)
-        loss = criterion(input=score, target=y_val)
-        temp_loss_list.append(loss.detach().cpu().numpy())
-    val_loss_list.append(np.average(temp_loss_list))
-    print("  train loss: %.5f" % train_loss_list[-1])
-    print("  val loss: %.5f" % val_loss_list[-1])
+        print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
+        model1.train()
+        # training loop
+        temp_loss_list = list()
+        for X_train, y_train in train_dataloader:
+            X_train = X_train.type(torch.float32).to(device)
+            y_train = y_train.type(torch.float32).to(device)
+            optimizer1.zero_grad()
+            score = model1(X_train)
+            loss = criterion(input=score, target=y_train)
+            loss.backward()
+            optimizer1.step()
+            temp_loss_list.append(loss.detach().cpu().numpy())
+        if epoch % 3 == 0:
+            #vis_weight_temp.append()
+            epochs_temp.append(epoch)
+            vis_loss_temp.append(np.average(temp_loss_list))
+        train_loss_list.append(np.average(temp_loss_list))
+        # validation
+        model1.eval()
+        temp_loss_list = list()
+        for X_val, y_val in val_dataloader:
+            X_val = X_val.type(torch.float32).to(device)
+            y_val = y_val.type(torch.float32).to(device)
+            score = model1(X_val)
+            loss = criterion(input=score, target=y_val)
+            temp_loss_list.append(loss.detach().cpu().numpy())
+        val_loss_list.append(np.average(temp_loss_list))
+        print("  train loss: %.5f" % train_loss_list[-1])
+        print("  val loss: %.5f" % val_loss_list[-1])
+    vis_loss.append(vis_loss_temp)
+    #vis_weights.append(vis_weight_temp)
+    epochs.append(epochs_temp)
 
 
 model1_y = model1(X_train)
 true_y = simpleFunction(X_train)
 
-# plot creation
-fig1, (ax1, ax2) = plt.subplots(1,2)
-# accuracy plot creation for model 1
-ax1.scatter(X_train, model1_y.detach().numpy(), color='r',label='model1')
-ax1.scatter(X_train, true_y.detach().numpy(), color ='g',label='true')
-ax1.set_xlabel("X")
-ax1.set_ylabel("Y")
-ax1.legend()
-# loss plot creation for model 1
-ax2.plot(train_loss_list, color='r', label='train')
-ax2.plot(val_loss_list, color='g', label='val')
-ax2.legend()
-ax2.set_xlabel("Epochs")
-ax2.set_ylabel("Loss")
-ax2.set_title("Training and Val Loss")
+#print(vis_weight_temp)
+print(vis_loss)
 
-fig1.savefig("img1.png")
+# plot creation for loss
+fig1, (ax1, ax2) = plt.subplots(1,2)
+# accuracy plot creation for layer 0
+ax1.scatter(epochs[0], vis_loss[0], color='r',label='layer 0')
+ax1.set_xlabel("Epoch")
+ax1.set_ylabel("Loss")
+ax1.legend()
+# loss plot creation for whole model
+for i in range(8):
+    ax2.scatter(epochs[0], vis_loss[i], color='r', label='whole model')
+ax2.legend()
+ax2.set_xlabel("Epoch")
+ax2.set_ylabel("Loss")
+
+fig1.savefig("img_vis.png")
