@@ -13,7 +13,7 @@ BATCH_SIZE = 512
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def simpleFunction(x):
-    val = 2 * np.sin(x)
+    val = (2 * np.sin(5 * np.pi * x)) / (5 * np.pi * x)
     #normalized = val / math.sqrt(2)
     return val
 
@@ -103,10 +103,9 @@ ax1.set_xlabel("Epochs")
 ax1.set_ylabel("Grad")
 ax1.legend()
 # loss plot creation for model 1
-ax2.plot(train_loss_list, color='r', label='train')
+ax2.plot(train_loss_list, color='r', label='loss')
 ax2.legend()
 ax2.set_xlabel("Epochs")
 ax2.set_ylabel("Loss")
-ax2.set_title("Training and Val Loss")
 
 fig1.savefig("img_grad.png")

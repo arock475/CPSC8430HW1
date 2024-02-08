@@ -13,8 +13,7 @@ BATCH_SIZE = 512
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def simpleFunction(x):
-    val = 2 * np.sin(x)
-    #normalized = val / math.sqrt(2)
+    val = (2 * np.sin(5 * np.pi * x)) / (5 * np.pi * x)
     return val
 
 
