@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-LR = 0.0001
-MAX_EPOCH = 15
+LR = 0.001
+MAX_EPOCH = 1500
 BATCH_SIZE = 512
-
+L2_REGULARIZATION = 0.001
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def simpleFunction(x):
@@ -28,9 +28,7 @@ class SineApproximator(nn.Module):
         super(SineApproximator, self).__init__()
         self.regressor = nn.Sequential(nn.Linear(1, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(20, 40),
-                                       nn.ReLU(inplace=True),
-                                       nn.Linear(40, 20),
+                                       nn.Linear(20, 20),
                                        nn.ReLU(inplace=True),
                                        nn.Linear(20, 1))
 
@@ -39,8 +37,7 @@ class SineApproximator(nn.Module):
         return output
 
 
-X = np.random.rand(10 ** 5)
-print(X)
+X = np.random.rand(10 ** 4)
 y = simpleFunction(X)
 
 X_train, X_val, y_train, y_val = map(torch.tensor, train_test_split(X, y, test_size=0.2))
@@ -50,9 +47,10 @@ val_dataloader = DataLoader(TensorDataset(X_val.unsqueeze(1), y_val.unsqueeze(1)
                             pin_memory=True, shuffle=True)
 
 model1 = SineApproximator().to(device)
-optimizer1 = optim.Adam(model1.parameters(), lr=LR)
+optimizer1 = optim.Adam(model1.parameters(), lr=LR, weight_decay=L2_REGULARIZATION)
 criterion = nn.MSELoss(reduction="mean")
-
+scheduler = optim.lr_scheduler.StepLR(optimizer1, step_size=500, gamma=0.5)
+clip_value = 0.5
 # training loop with normal loss function
 train_loss_list = list()
 val_loss_list = list()
@@ -68,6 +66,7 @@ for epoch in range(MAX_EPOCH):
         score = model1(X_train)
         loss = criterion(input=score, target=y_train)
         loss.backward()
+        nn.utils.clip_grad_norm_(model1.parameters(), clip_value)
         optimizer1.step()
         temp_loss_list.append(loss.detach().cpu().numpy())
     train_loss_list.append(np.average(temp_loss_list))
@@ -82,9 +81,11 @@ for epoch in range(MAX_EPOCH):
         loss = criterion(input=score, target=y_val)
         temp_loss_list.append(loss.detach().cpu().numpy())
     val_loss_list.append(np.average(temp_loss_list))
+    scheduler.step()
     print("  train loss: %.5f" % train_loss_list[-1])
     print("  val loss: %.5f" % val_loss_list[-1])
 
+min_ratios = []
 # training with grad as loss function
 for epoch in range(MAX_EPOCH):
     print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
@@ -95,11 +96,19 @@ for epoch in range(MAX_EPOCH):
         X_train = X_train.type(torch.float32).to(device)
         y_train = y_train.type(torch.float32).to(device)
         optimizer1.zero_grad()
-        score = gradient_norm_loss(model1)
-        loss = criterion(input=score, target=)
+        score = model1(X_train)
+        loss = criterion(input=score, target=y_train)
         loss.backward()
+        nn.utils.clip_grad_norm_(model1.parameters(), clip_value)
         optimizer1.step()
         temp_loss_list.append(loss.detach().cpu().numpy())
+    gradient_norm = gradient_norm_loss(model1)
+    print(gradient_norm)
+    if gradient_norm < 1e-6:
+        Hess = torch.autograd.functional.hessian(loss, model1.parameters())
+        eigenvalues, _ = torch.eig(Hess[0])
+        minimal_ratio = eigenvalues[:, 0].min() / eigenvalues[:, 0].max()
+        min_ratios.append(minimal_ratio.item())
     train_loss_list.append(np.average(temp_loss_list))
 
     # validation
@@ -112,6 +121,7 @@ for epoch in range(MAX_EPOCH):
         loss = criterion(input=score, target=y_val)
         temp_loss_list.append(loss.detach().cpu().numpy())
     val_loss_list.append(np.average(temp_loss_list))
+    scheduler.step()
     print("  train loss: %.5f" % train_loss_list[-1])
     print("  val loss: %.5f" % val_loss_list[-1])
 
@@ -120,20 +130,13 @@ model1_y = model1(X_train)
 true_y = simpleFunction(X_train)
 
 # plot creation
-fig1, (ax1, ax2) = plt.subplots(1,2)
+#fig1, ax1 = plt.subplots(1,2)
 # accuracy plot creation for model 1
-ax1.scatter(X_train, model1_y.detach().numpy(), color='r',label='model1')
-ax1.scatter(X_train, true_y.detach().numpy(), color ='g',label='true')
-ax1.set_xlabel("X")
-ax1.set_ylabel("Y")
-ax1.legend()
-# loss plot creation for model 1
-ax2.plot(train_loss_list, color='r', label='train')
-ax2.plot(val_loss_list, color='g', label='val')
-ax2.legend()
-ax2.set_xlabel("Epochs")
-ax2.set_ylabel("Loss")
-ax2.set_title("Training and Val Loss")
+print(len(min_ratios), " ", len(train_loss_list))
+plt.scatter(min_ratios, train_loss_list, color='r')
+plt.xlabel("minimum ratio")
+plt.ylabel("loss")
 
-fig1.savefig("img_p3.png")
+
+plt.savefig("img_p3.png")
 

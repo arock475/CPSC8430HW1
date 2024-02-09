@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     #label randomization
     print(trainset.targets[0])
-    trainset.targets = np.random.permutation(trainset.targets)
+    #trainset.targets = np.random.permutation(trainset.targets)
     print(trainset.targets[0])
     model1 = ImageClass1()
     criterion = nn.CrossEntropyLoss()
@@ -55,6 +55,7 @@ if __name__ == '__main__':
         loss_temp = []
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data
+            labels = torch.randint(0, 10, labels.size())
             optimizer1.zero_grad()
             outputs = model1(inputs)
             loss = criterion(outputs, labels)
@@ -94,12 +95,14 @@ if __name__ == '__main__':
 
     fig1, (ax1, ax2) = plt.subplots(1,2)
     # accuracy plot creation
-    ax1.plot(acc_list_1, color='r')
+    ax1.plot(loss_list_1, color='r')
     ax1.set_xlabel("Epochs")
     ax1.set_ylabel("Accuracy")
+    ax1.set_title("Train Loss")
     # loss plot creation
-    ax2.plot(loss_list_1, color='r')
+    ax2.plot(test_loss_list, color='r')
     ax2.set_xlabel("Epochs")
     ax2.set_ylabel("Loss")
+    ax2.set_title("Test Loss")
 
     fig1.savefig("img3.1.png")

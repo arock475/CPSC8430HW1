@@ -63,6 +63,7 @@ fig2, (ax3, ax4) = plt.subplots(1,2)
 for i in range(8):
     vis_loss_temp = []
     vis_weight_temp = []
+    layer_weight_temp = []
     epochs_temp = []
     count = 0
     for epoch in range(MAX_EPOCH):
@@ -87,6 +88,7 @@ for i in range(8):
             vis_weight_temp.append(np.concatenate(weights))
             epochs_temp.append(epoch)
             vis_loss_temp.append(np.average(temp_loss_list))
+            layer_weight_temp.append(weights[0])
         train_loss_list.append(np.average(temp_loss_list))
         # validation
         model1.eval()
@@ -104,10 +106,19 @@ for i in range(8):
     #vis_weights.append(vis_weight_temp)
     epochs.append(epochs_temp)
     weights_array = np.array(vis_weight_temp)
+    layer_weights_array = np.array(layer_weight_temp)
     pca = PCA(n_components=2)
+    print(weights_array.shape)
+    print(layer_weights_array.shape)
+    layer_weights_reshaped = layer_weights_array.reshape(count, -1)
     weights_reshaped = weights_array.reshape(count, -1)
+    print(weights_reshaped.shape)
+    print(layer_weights_reshaped.shape)
     pca.fit(weights_reshaped)
+    pca.fit(layer_weights_reshaped)
     weights_pca = pca.transform(weights_reshaped)
+    layer_weights_pca = pca.transform(layer_weights_reshaped)
+    ax3.scatter(layer_weights_pca[:,0], layer_weights_pca[:,1], c=colors[i])
     ax4.scatter(weights_pca[:,0], weights_pca[:,1], c=colors[i])
 model1_y = model1(X_train)
 true_y = simpleFunction(X_train)

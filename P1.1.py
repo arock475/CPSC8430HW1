@@ -77,13 +77,13 @@ optimizer2 = optim.Adam(model2.parameters(), lr=LR)
 criterion = nn.MSELoss(reduction="mean")
 
 # training loop for model 1
-train_loss_list = list()
-val_loss_list = list()
+train_loss_list = []
+val_loss_list = []
 for epoch in range(MAX_EPOCH):
     print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
     model1.train()
     # training loop
-    temp_loss_list = list()
+    temp_loss_list = []
     for X_train, y_train in train_dataloader:
         X_train = X_train.type(torch.float32).to(device)
         y_train = y_train.type(torch.float32).to(device)
@@ -97,7 +97,7 @@ for epoch in range(MAX_EPOCH):
 
     # validation
     model1.eval()
-    temp_loss_list = list()
+    temp_loss_list = []
     for X_val, y_val in val_dataloader:
         X_val = X_val.type(torch.float32).to(device)
         y_val = y_val.type(torch.float32).to(device)
@@ -131,13 +131,13 @@ ax2.set_title("Training and Val Loss")
 fig1.savefig("img1.png")
 
 # training loop for model 2 (trained same way just using different models to hopefully get different result)
-train_loss_list = list()
-val_loss_list = list()
+train_loss_list = []
+val_loss_list = []
 for epoch in range(MAX_EPOCH):
     print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
     model2.train()
     # training loop
-    temp_loss_list = list()
+    temp_loss_list = []
     for X_train, y_train in train_dataloader:
         X_train = X_train.type(torch.float32).to(device)
         y_train = y_train.type(torch.float32).to(device)
@@ -151,7 +151,7 @@ for epoch in range(MAX_EPOCH):
 
     # validation
     model2.eval()
-    temp_loss_list = list()
+    temp_loss_list = []
     for X_val, y_val in val_dataloader:
         X_val = X_val.type(torch.float32).to(device)
         y_val = y_val.type(torch.float32).to(device)
