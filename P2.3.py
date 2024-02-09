@@ -7,34 +7,39 @@ import numpy as np
 
 
 LR = 0.0001
-MAX_EPOCH = 2
+MAX_EPOCH = 15
 BATCH_SIZE = 512
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def simpleFunction(x):
-    val = 2 * np.sin(x)
-    #normalized = val / math.sqrt(2)
+    val = (2 * np.sin(5 * np.pi * x)) / (5 * np.pi * x)
     return val
 
+def gradient_norm_loss(model):
+    grad_norm = 0.0
+    for p in model.parameters():
+        if p.grad is not None:
+            grad_norm += (p.grad.cpu().data.numpy() ** 2).sum()
+    return grad_norm ** 0.5
 
 class SineApproximator(nn.Module):
     def __init__(self):
         super(SineApproximator, self).__init__()
-        self.regressor = nn.Sequential(nn.Linear(1, 1024),
+        self.regressor = nn.Sequential(nn.Linear(1, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1024),
+                                       nn.Linear(20, 40),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1024),
+                                       nn.Linear(40, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1))
+                                       nn.Linear(20, 1))
 
     def forward(self, x):
         output = self.regressor(x)
         return output
 
 
-X = np.random.rand(10 ** 5) * 2 * np.pi
+X = np.random.rand(10 ** 5)
 print(X)
 y = simpleFunction(X)
 
@@ -48,7 +53,7 @@ model1 = SineApproximator().to(device)
 optimizer1 = optim.Adam(model1.parameters(), lr=LR)
 criterion = nn.MSELoss(reduction="mean")
 
-# training loop for model 1
+# training loop with normal loss function
 train_loss_list = list()
 val_loss_list = list()
 for epoch in range(MAX_EPOCH):
@@ -62,6 +67,36 @@ for epoch in range(MAX_EPOCH):
         optimizer1.zero_grad()
         score = model1(X_train)
         loss = criterion(input=score, target=y_train)
+        loss.backward()
+        optimizer1.step()
+        temp_loss_list.append(loss.detach().cpu().numpy())
+    train_loss_list.append(np.average(temp_loss_list))
+
+    # validation
+    model1.eval()
+    temp_loss_list = list()
+    for X_val, y_val in val_dataloader:
+        X_val = X_val.type(torch.float32).to(device)
+        y_val = y_val.type(torch.float32).to(device)
+        score = model1(X_val)
+        loss = criterion(input=score, target=y_val)
+        temp_loss_list.append(loss.detach().cpu().numpy())
+    val_loss_list.append(np.average(temp_loss_list))
+    print("  train loss: %.5f" % train_loss_list[-1])
+    print("  val loss: %.5f" % val_loss_list[-1])
+
+# training with grad as loss function
+for epoch in range(MAX_EPOCH):
+    print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
+    model1.train()
+    # training loop
+    temp_loss_list = list()
+    for X_train, y_train in train_dataloader:
+        X_train = X_train.type(torch.float32).to(device)
+        y_train = y_train.type(torch.float32).to(device)
+        optimizer1.zero_grad()
+        score = gradient_norm_loss(model1)
+        loss = criterion(input=score, target=)
         loss.backward()
         optimizer1.step()
         temp_loss_list.append(loss.detach().cpu().numpy())

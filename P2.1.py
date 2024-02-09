@@ -8,8 +8,8 @@ import numpy as np
 
 
 LR = 0.0001
-MAX_EPOCH = 4
-BATCH_SIZE = 512
+MAX_EPOCH = 10
+BATCH_SIZE = 64
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -17,19 +17,22 @@ def simpleFunction(x):
     val = (np.sin(5 * np.pi * x)) / (5 * np.pi * x)
     return val
 
+def weights_init(m):
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.xavier_uniform(m.weight.data)
 
 class FunctionApproximator1(nn.Module):
     def __init__(self):
         super(FunctionApproximator1, self).__init__()
-        self.regressor = nn.Sequential(nn.Linear(1, 20),
+        self.regressor = nn.Sequential(nn.Linear(1, 10),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(20, 40),
+                                       nn.Linear(10, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(40, 40),
+                                       nn.Linear(20, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(40, 20),
+                                       nn.Linear(20, 10),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(20, 1))
+                                       nn.Linear(10, 1))
 
     def forward(self, x):
         output = self.regressor(x)
@@ -49,18 +52,20 @@ model1 = FunctionApproximator1().to(device)
 optimizer1 = optim.Adam(model1.parameters(), lr=LR)
 criterion = nn.MSELoss(reduction="mean")
 
-# training loop for model 1
 train_loss_list = list()
 val_loss_list = list()
 vis_weights = []
 vis_loss = []
 epochs = []
+colors = ['b', 'g', 'r', 'y', 'c', 'k', 'tab:grey', 'm']
+# plot creation for weights
+fig2, (ax3, ax4) = plt.subplots(1,2)
 for i in range(8):
     vis_loss_temp = []
     vis_weight_temp = []
     epochs_temp = []
+    count = 0
     for epoch in range(MAX_EPOCH):
-
         print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
         model1.train()
         # training loop
@@ -76,10 +81,10 @@ for i in range(8):
             temp_loss_list.append(loss.detach().cpu().numpy())
         weights = []
         if epoch % 3 == 0:
+            count += 1
             for param_tensor in model1.state_dict():
                 weights.append(model1.state_dict()[param_tensor].numpy().flatten())
             vis_weight_temp.append(np.concatenate(weights))
-
             epochs_temp.append(epoch)
             vis_loss_temp.append(np.average(temp_loss_list))
         train_loss_list.append(np.average(temp_loss_list))
@@ -96,10 +101,14 @@ for i in range(8):
         print("  train loss: %.5f" % train_loss_list[-1])
         print("  val loss: %.5f" % val_loss_list[-1])
     vis_loss.append(vis_loss_temp)
-    vis_weights.append(vis_weight_temp)
+    #vis_weights.append(vis_weight_temp)
     epochs.append(epochs_temp)
-
-
+    weights_array = np.array(vis_weight_temp)
+    pca = PCA(n_components=2)
+    weights_reshaped = weights_array.reshape(count, -1)
+    pca.fit(weights_reshaped)
+    weights_pca = pca.transform(weights_reshaped)
+    ax4.scatter(weights_pca[:,0], weights_pca[:,1], c=colors[i])
 model1_y = model1(X_train)
 true_y = simpleFunction(X_train)
 
@@ -120,41 +129,28 @@ ax2.set_ylabel("Loss")
 
 fig1.savefig("img2.1_vis.png")
 
-# plot creation for weights
-fig2, (ax3, ax4) = plt.subplots(1,2)
+
 #print(vis_weights)
 
-PCA_weights = []
+#PCA_weights = []
+#weights_array = np.array(vis_weights)
+#print(weights_array.shape)
+#pca = PCA(n_components=2)
+#weights_reshaped = weights_array.reshape(8 * len(vis_weights[0]), -1)
+#pca.fit(weights_reshaped)
+#weights_pca = pca.transform(weights_reshaped)
 
 
-weights_array = np.array(vis_weights)
-
-pca = PCA(n_components=2)
-
-epochs = weights_array.shape[0]
-weights_reshaped = weights_array.reshape(MAX_EPOCH, -1)
-
-# Fit PCA to the reshaped weights
-pca.fit(weights_array)
-
-# Transform the weights to 2D using PCA
-weights_pca = pca.transform(weights_reshaped)
-
-# Now, weights_pca contains the weights collected every 3 epochs from training, reduced to 2 dimensions using PCA
+# whole model
+#print(weights_pca.shape)
+#colors = ['b','b','r', 'r', 'g', 'g', 'y', 'y', 'c', 'c', 'm', 'm', 'k', 'k', 'tab:gray', 'tab:gray']
+#for i in range(len(weights_pca)):
+#    ax4.scatter(weights_pca[i,0], weights_pca[i,1], c = colors[i])
+#ax4.scatter(weights_pca[:, 0], weights_pca[:, 1], s=20, c='b', marker='o')
+#ax4.set_title('PCA of Weights')
+#ax4.set_xlabel('Principal Component 1')
+#ax4.set_ylabel('Principal Component 2')
+#ax4.grid(True)
 
 
-
-
-
-# accuracy plot creation for layer 0
-ax3.scatter(epochs[0], vis_loss[0], color='r',label='Model 1')
-ax3.set_xlabel("PC1")
-ax3.set_ylabel("PC2")
-ax3.legend()
-# loss plot creation for whole model
-for i in range(8):
-    ax2.scatter(epochs[0], vis_loss[i], color='r')
-ax2.set_xlabel("Epoch")
-ax2.set_ylabel("Loss")
-
-fig1.savefig("img2.1_weight.png")
+fig2.savefig("img2.1_weight.png")

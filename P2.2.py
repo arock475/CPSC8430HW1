@@ -13,7 +13,7 @@ BATCH_SIZE = 512
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def simpleFunction(x):
-    val = (np.sin(5 * np.pi * x)) / (5 * np.pi * x)
+    val = (np.sin(5 * np.pi * x) + x**5 + np.sin(np.pi * x)) / (5 * np.pi * x)
     return val
 
 
@@ -23,8 +23,6 @@ class FunctionApproximator1(nn.Module):
         self.regressor = nn.Sequential(nn.Linear(1, 20),
                                        nn.ReLU(inplace=True),
                                        nn.Linear(20, 40),
-                                       nn.ReLU(inplace=True),
-                                       nn.Linear(40, 40),
                                        nn.ReLU(inplace=True),
                                        nn.Linear(40, 20),
                                        nn.ReLU(inplace=True),
