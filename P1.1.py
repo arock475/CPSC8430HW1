@@ -7,7 +7,7 @@ import numpy as np
 
 
 LR = 0.0001
-MAX_EPOCH = 25
+MAX_EPOCH = 50
 BATCH_SIZE = 512
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -17,26 +17,51 @@ def simpleFunction(x):
     return val
 
 
-class SineApproximator(nn.Module):
+class FunctionApproximator1(nn.Module):
     def __init__(self):
-        super(SineApproximator, self).__init__()
-        self.regressor = nn.Sequential(nn.Linear(1, 1024),
+        super(FunctionApproximator1, self).__init__()
+        self.regressor = nn.Sequential(nn.Linear(1, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1024),
+                                       nn.Linear(20, 40),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1024),
+                                       nn.Linear(40, 40),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1024),
+                                       nn.Linear(40, 20),
                                        nn.ReLU(inplace=True),
-                                       nn.Linear(1024, 1))
+                                       nn.Linear(20, 1))
+
+    def forward(self, x):
+        output = self.regressor(x)
+        return output
+class FunctionApproximator2(nn.Module):
+    def __init__(self):
+        super(FunctionApproximator2, self).__init__()
+        self.regressor = nn.Sequential(nn.Linear(1, 17),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(17, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 20),
+                                       nn.ReLU(inplace=True),
+                                       nn.Linear(20, 1))
 
     def forward(self, x):
         output = self.regressor(x)
         return output
 
 
-X = np.random.rand(10 ** 5) * 2 * np.pi
-print(X)
+X = np.random.rand(10 ** 5) #* 2 * np.pi
 y = simpleFunction(X)
 
 X_train, X_val, y_train, y_val = map(torch.tensor, train_test_split(X, y, test_size=0.2))
@@ -45,8 +70,8 @@ train_dataloader = DataLoader(TensorDataset(X_train.unsqueeze(1), y_train.unsque
 val_dataloader = DataLoader(TensorDataset(X_val.unsqueeze(1), y_val.unsqueeze(1)), batch_size=BATCH_SIZE,
                             pin_memory=True, shuffle=True)
 
-model1 = SineApproximator().to(device)
-model2 = SineApproximator().to(device)
+model1 = FunctionApproximator1().to(device)
+model2 = FunctionApproximator2().to(device)
 optimizer1 = optim.Adam(model1.parameters(), lr=LR)
 optimizer2 = optim.Adam(model2.parameters(), lr=LR)
 criterion = nn.MSELoss(reduction="mean")
