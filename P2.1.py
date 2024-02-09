@@ -124,23 +124,6 @@ model1_y = model1(X_train)
 true_y = simpleFunction(X_train)
 
 
-
-# plot creation for loss
-fig1, (ax1, ax2) = plt.subplots(1,2)
-# accuracy plot creation for layer 0
-ax1.scatter(epochs[0], vis_loss[0], color='r',label='layer 0')
-ax1.set_xlabel("Epoch")
-ax1.set_ylabel("Loss")
-ax1.legend()
-# loss plot creation for whole model
-for i in range(8):
-    ax2.scatter(epochs[0], vis_loss[i], color='r')
-ax2.set_xlabel("Epoch")
-ax2.set_ylabel("Loss")
-
-fig1.savefig("img2.1_vis.png")
-
-
 #print(vis_weights)
 
 #PCA_weights = []
