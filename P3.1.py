@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # accuracy plot creation
     ax1.plot(loss_list_1, color='r')
     ax1.set_xlabel("Epochs")
-    ax1.set_ylabel("Accuracy")
+    ax1.set_ylabel("Loss")
     ax1.set_title("Train Loss")
     # loss plot creation
     ax2.plot(test_loss_list, color='r')
