@@ -7,7 +7,7 @@ import numpy as np
 
 
 LR = 0.0001
-MAX_EPOCH = 50
+MAX_EPOCH = 500
 BATCH_SIZE = 512
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -76,6 +76,9 @@ optimizer1 = optim.Adam(model1.parameters(), lr=LR)
 optimizer2 = optim.Adam(model2.parameters(), lr=LR)
 criterion = nn.MSELoss(reduction="mean")
 
+# plot creation
+fig2, (ax3, ax4) = plt.subplots(1,2)
+
 # training loop for model 1
 train_loss_list = []
 val_loss_list = []
@@ -111,24 +114,12 @@ for epoch in range(MAX_EPOCH):
 
 model1_y = model1(X_train)
 true_y = simpleFunction(X_train)
+#fit plot for model 1
+ax3.scatter(X_train, model1_y.detach().numpy(), color='b', label='model1')
+# loss plot for model 1
+ax4.plot(train_loss_list, color='b', label='model_1_train')
+ax4.plot(val_loss_list, color='c', label='model_1_val')
 
-# plot creation
-fig1, (ax1, ax2) = plt.subplots(1,2)
-# accuracy plot creation for model 1
-ax1.scatter(X_train, model1_y.detach().numpy(), color='r',label='model1')
-ax1.scatter(X_train, true_y.detach().numpy(), color ='g',label='true')
-ax1.set_xlabel("X")
-ax1.set_ylabel("Y")
-ax1.legend()
-# loss plot creation for model 1
-ax2.plot(train_loss_list, color='r', label='train')
-ax2.plot(val_loss_list, color='g', label='val')
-ax2.legend()
-ax2.set_xlabel("Epochs")
-ax2.set_ylabel("Loss")
-ax2.set_title("Training and Val Loss")
-
-fig1.savefig("img1.png")
 
 # training loop for model 2 (trained same way just using different models to hopefully get different result)
 train_loss_list = []
@@ -164,18 +155,15 @@ for epoch in range(MAX_EPOCH):
 
 model2_y = model2(X_train)
 true_y = simpleFunction(X_train)
-
-# plot creation
-fig2, (ax3, ax4) = plt.subplots(1,2)
-# accuracy plot creation for model 2
+# fit plot creation for model 2
 ax3.scatter(X_train, model2_y.detach().numpy(), color='r',label='model2')
 ax3.scatter(X_train, true_y.detach().numpy(), color ='g',label='true')
 ax3.set_xlabel("X")
 ax3.set_ylabel("Y")
 ax3.legend()
 # loss plot creation for model 2
-ax4.plot(train_loss_list, color='r', label='train')
-ax4.plot(val_loss_list, color='g', label='val')
+ax4.plot(train_loss_list, color='r', label='model_2_train')
+ax4.plot(val_loss_list, color='g', label='model_2_val')
 ax4.legend()
 ax4.set_xlabel("Epochs")
 ax4.set_ylabel("Loss")
