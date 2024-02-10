@@ -93,15 +93,10 @@ if __name__ == '__main__':
     print('Finished Training Model 1')
 
 
-    fig1, (ax1, ax2) = plt.subplots(1,2)
-    ax1.plot(loss_list_1, color='r', label='train_loss')
-    ax1.set_xlabel("Epochs")
-    ax1.set_ylabel("Loss")
-    ax1.set_title("Train Loss")
-    ax1.plot(test_loss_list, color='g', label='test_loss')
-    ax1.set_xlabel("Epochs")
-    ax1.set_ylabel("Loss")
-    ax1.set_title("Test Loss")
-    ax1.legend()
+    plt.plot(loss_list_1, color='r', label='train_loss')
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.plot(test_loss_list, color='g', label='test_loss')
+    plt.legend()
 
-    fig1.savefig("img3.1.png")
+    plt.savefig("img3.1.png")

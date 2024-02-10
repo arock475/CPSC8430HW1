@@ -17,7 +17,15 @@ def simpleFunction(x):
     val = (2 * np.sin(5 * np.pi * x)) / (5 * np.pi * x)
     return val
 
-
+def accuracy(y_pred, y_true):
+    if isinstance(y_true, torch.Tensor):
+        y_true = y_true.detach().cpu().numpy()
+    if isinstance(y_pred, torch.Tensor):
+        y_pred = y_pred.detach().cpu().numpy()
+    correct = sum(1 for true, pred in zip(y_true, y_pred) if ((pred >= true - 1) and (pred <= true + 1)))
+    total = len(y_true)
+    acc = correct / total
+    return acc
 
 class FunctionApproximator1(nn.Module):
     def __init__(self):
@@ -139,35 +147,36 @@ for alpha in alpha_vals:
         lin_model.train()
         # training loop
         correct = 0
+        temp_acc = []
         for X_train, y_train in train_dataloader:
             X_train = X_train.type(torch.float32).to(device)
             y_train = y_train.type(torch.float32).to(device)
             optimizer2.zero_grad()
             score = lin_model(X_train)
             loss = criterion(input=score, target=y_train)
-            correct += (score == y_train).sum().item()
             loss.backward()
+            temp_acc.append(accuracy(score, y_train))
             optimizer2.step()
             temp_loss_list.append(loss.detach().cpu().numpy())
         train_loss_list.append(np.average(temp_loss_list))
-        temp_tr_acc_list.append(correct / len(train_dataloader))
+        temp_tr_acc_list.append(np.average(temp_acc))
         # validation
         lin_model.eval()
         temp_loss_list = []
-        correct = 0
+        temp_acc = []
         for X_val, y_val in val_dataloader:
             X_val = X_val.type(torch.float32).to(device)
             y_val = y_val.type(torch.float32).to(device)
             score = lin_model(X_val)
             loss = criterion(input=score, target=y_val)
-            correct += (score == y_val).sum().item()
+            temp_acc.append(accuracy(score, y_val))
             temp_loss_list.append(loss.detach().cpu().numpy())
         val_loss_list.append(np.average(temp_loss_list))
-        temp_te_acc_list.append(correct / len(val_dataloader))
+        temp_te_acc_list.append(np.average(temp_acc))
     fin_tr_loss.append(train_loss_list[-1])
     fin_te_loss.append(val_loss_list[-1])
-    fin_tr_acc.append(temp_tr_acc_list[-1])
-    fin_te_acc.append(temp_te_acc_list[-1])
+    fin_tr_acc.append(np.average(temp_tr_acc_list))
+    fin_te_acc.append(np.average(temp_te_acc_list))
 fig1, (ax1, ax2) = plt.subplots(1,2)
 
 ax1.plot(alpha_vals, fin_tr_loss, color='r', label='train_loss')
