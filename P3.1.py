@@ -29,19 +29,12 @@ class ImageClass1(nn.Module):
 
 
 if __name__ == '__main__':
-    # create transform to normalize data
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-    # download and normalize data
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
-
-    #label randomization
     print(trainset.targets[0])
-    #trainset.targets = np.random.permutation(trainset.targets)
     print(trainset.targets[0])
     model1 = ImageClass1()
     criterion = nn.CrossEntropyLoss()
@@ -83,9 +76,7 @@ if __name__ == '__main__':
         with torch.no_grad():
             for data in testloader:
                 images, labels = data
-                # calculate outputs by running images through the network
                 outputs = model1(images)
-                # the class with the highest energy is what we choose as prediction
                 loss = criterion(outputs, labels)
                 temp_loss_list.append(loss.detach().cpu().numpy())
             test_loss_list.append(np.average(temp_loss_list))

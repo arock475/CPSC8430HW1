@@ -69,7 +69,7 @@ class ImageClass4(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1) # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -87,7 +87,7 @@ class ImageClass5(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1)  # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -106,7 +106,7 @@ class ImageClass6(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1)  # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -126,7 +126,7 @@ class ImageClass7(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1)  # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -146,7 +146,7 @@ class ImageClass8(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1)  # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -167,7 +167,7 @@ class ImageClass9(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1)  # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -189,7 +189,7 @@ class ImageClass10(nn.Module):
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
         x = self.pool(nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1)  # flatten all dimensions except batch
+        x = torch.flatten(x, 1)
         x = nn.functional.relu(self.fc1(x))
         x = nn.functional.relu(self.fc2(x))
         x = self.fc3(x)
@@ -217,8 +217,6 @@ def train(model_num, model, optimizer):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            #print(outputs.shape, labels.shape, outputs, labels)
-            #correct += (outputs == labels).float.sum()
             training_loss_temp.append(loss.detach().cpu().numpy())
         # get training loss
         training_loss.append(np.average(training_loss_temp))
@@ -239,10 +237,8 @@ def train(model_num, model, optimizer):
                 correct += (predicted == labels).sum().item()
                 loss = criterion(input=outputs, target=labels)
                 test_loss_temp.append(loss.detach().numpy())
-        #get test accuracy
         test_acc.append(correct / total)
         print("Test Accuracy = " + str(test_acc[-1]))
-        #get test loss
         test_loss.append(np.average(test_loss_temp))
         print("Test Loss = " + str(test_loss[-1]))
     print('Finished Training Model' + str(model_num))
@@ -250,16 +246,12 @@ def train(model_num, model, optimizer):
 
 
 if __name__ == '__main__':
-    # create transform to normalize data
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
-    # download and normalize data
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
-    #init models and optimizers
     models = [ImageClass1(), ImageClass2(), ImageClass3(), ImageClass4(), ImageClass5(), ImageClass6(), ImageClass7(),
               ImageClass8(), ImageClass9(), ImageClass10()]
 
@@ -290,11 +282,8 @@ if __name__ == '__main__':
         training_loss_list_list.append(training_loss_list[-1])
         test_acc_list_list.append(test_acc_list[-1])
         test_loss_list_list.append(test_loss_list[-1])
-    # accuracy plot creation
     ax1.scatter(num_params_list, training_acc_list_list, color='r', label='training accuracy')
     ax1.scatter(num_params_list, test_acc_list_list, color='g', label='test accuracy')
-
-    # loss plot creation
     ax2.scatter(num_params_list, training_loss_list_list, color='r', label='training loss')
     ax2.scatter(num_params_list, test_loss_list_list, color='g', label='test loss')
     ax1.set_xlabel("Parameters")

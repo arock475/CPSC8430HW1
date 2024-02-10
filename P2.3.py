@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-LR = 0.001
-MAX_EPOCH = 1500
+LR = 0.0001
+MAX_EPOCH = 150
 BATCH_SIZE = 512
 L2_REGULARIZATION = 0.001
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")

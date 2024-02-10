@@ -61,7 +61,7 @@ class FunctionApproximator2(nn.Module):
         return output
 
 
-X = np.random.rand(10 ** 5) #* 2 * np.pi
+X = np.random.rand(10 ** 5)
 y = simpleFunction(X)
 
 X_train, X_val, y_train, y_val = map(torch.tensor, train_test_split(X, y, test_size=0.2))

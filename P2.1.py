@@ -83,12 +83,14 @@ for i in range(8):
         weights = []
         if epoch % 3 == 0:
             count += 1
-            for param_tensor in model1.state_dict():
+            for j, param_tensor in enumerate(model1.state_dict()):
                 weights.append(model1.state_dict()[param_tensor].numpy().flatten())
+                if j == 0:
+                    layer_weight_temp.append(model1.state_dict()[param_tensor].numpy().flatten())
             vis_weight_temp.append(np.concatenate(weights))
             epochs_temp.append(epoch)
             vis_loss_temp.append(np.average(temp_loss_list))
-            layer_weight_temp.append(weights[0])
+            #layer_weight_temp.append(weights[0])
         train_loss_list.append(np.average(temp_loss_list))
         # validation
         model1.eval()
@@ -110,8 +112,8 @@ for i in range(8):
     pca = PCA(n_components=2)
     print(weights_array.shape)
     print(layer_weights_array.shape)
-    layer_weights_reshaped = layer_weights_array.reshape(count, -1)
-    weights_reshaped = weights_array.reshape(count, -1)
+    layer_weights_reshaped = layer_weights_array.reshape(-1, count)
+    weights_reshaped = weights_array.reshape(-1, count)
     print(weights_reshaped.shape)
     print(layer_weights_reshaped.shape)
     pca.fit(weights_reshaped)

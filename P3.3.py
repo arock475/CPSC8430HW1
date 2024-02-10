@@ -51,7 +51,7 @@ def interpolate_models(model_1, model_2, alpha):
         setattr(new_model, 'param', nn.Parameter(new_param))
     return new_model
 
-X = np.random.rand(10 ** 5) #* 2 * np.pi
+X = np.random.rand(10 ** 5)
 y = simpleFunction(X)
 
 X_train, X_val, y_train, y_val = map(torch.tensor, train_test_split(X, y, test_size=0.2))

@@ -79,7 +79,6 @@ optimizers = [optim.Adam(models[0].parameters(), lr=LR_1),
     optim.Adam(models[4].parameters(), lr=LR_5)]
 criterion = nn.MSELoss(reduction="mean")
 
-# plot creation
 fig2, (ax3, ax4) = plt.subplots(1,2)
 
 learning_rates = [0.1,0.01,0.001,0.0001,0.00001]
@@ -152,57 +151,3 @@ ax4.legend()
 ax4.set_xlabel("learning rate")
 ax4.set_ylabel("loss")
 fig2.savefig("P3.3.2.png")
-
-
-# # training loop for model 2 (trained same way just using different models to hopefully get different result)
-# train_loss_list = []
-# val_loss_list = []
-# for epoch in range(MAX_EPOCH):
-#     print("epoch %d / %d" % (epoch + 1, MAX_EPOCH))
-#     model2.train()
-#     # training loop
-#     temp_loss_list = []
-#     for X_train, y_train in train_dataloader:
-#         X_train = X_train.type(torch.float32).to(device)
-#         y_train = y_train.type(torch.float32).to(device)
-#         optimizer2.zero_grad()
-#         score = model2(X_train)
-#         loss = criterion(input=score, target=y_train)
-#         loss.backward()
-#         optimizer2.step()
-#         temp_loss_list.append(loss.detach().cpu().numpy())
-#     train_loss_list.append(np.average(temp_loss_list))
-#
-#     # validation
-#     model2.eval()
-#     temp_loss_list = []
-#     for X_val, y_val in val_dataloader:
-#         X_val = X_val.type(torch.float32).to(device)
-#         y_val = y_val.type(torch.float32).to(device)
-#         score = model2(X_val)
-#         loss = criterion(input=score, target=y_val)
-#         temp_loss_list.append(loss.detach().cpu().numpy())
-#     val_loss_list.append(np.average(temp_loss_list))
-#
-# # data for plots
-#
-# model2_y = model2(X_train)
-# true_y = simpleFunction(X_train)
-# # fit plot creation for model 2
-# ax3.scatter(X_train, model2_y.detach().numpy(), color='r',label='model2')
-# ax3.scatter(X_train, true_y.detach().numpy(), color ='g',label='true')
-# ax3.set_xlabel("X")
-# ax3.set_ylabel("Y")
-# ax3.legend()
-# # loss plot creation for model 2
-# ax4.plot(train_loss_list, color='r', label='model_2_train')
-# ax4.plot(val_loss_list, color='g', label='model_2_val')
-# ax4.legend()
-# ax4.set_xlabel("Epochs")
-# ax4.set_ylabel("Loss")
-# ax4.set_title("Training and Val Loss")
-#
-# fig2.savefig("img2.png")
-#
-#
-#
